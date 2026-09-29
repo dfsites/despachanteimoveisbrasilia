@@ -1,0 +1,1 @@
+import{c as e}from"./j-5d2ee8d2.js";var t=``;try{t=document.referrer?new URL(document.referrer).hostname:``}catch{t=``}e(`page_not_found`,{not_found_path:location.pathname.slice(0,100),not_found_referrer:t||`(direto)`});

@@ -1,0 +1,1 @@
+import{a as e,i as t,s as n,t as r}from"./j-5d2ee8d2.js";var i=document.querySelector(`[data-consent]`);i&&r()&&t(location.hostname)&&e()===null&&(i.hidden=!1,i.querySelectorAll(`[data-consent-choice]`).forEach(e=>e.addEventListener(`click`,()=>{let t=e.dataset.consentChoice;(t===`granted`||t===`denied`)&&n(t),i.hidden=!0})));

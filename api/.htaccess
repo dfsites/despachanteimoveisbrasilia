@@ -1,0 +1,24 @@
+# Endpoints: nada é indexado nem guardado em cache; o arquivo comum não é acessível.
+<IfModule mod_headers.c>
+  Header set X-Robots-Tag "noindex, nofollow"
+  Header set Cache-Control "no-store"
+</IfModule>
+<Files "_comum.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+# Temporários do deploy (ex.: lead.php.tmp-deploy) não são PHP: sem esta regra o código sairia como texto.
+<FilesMatch "\.tmp-deploy$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

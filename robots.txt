@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /busca/
+Disallow: /api/
+
+Sitemap: https://www.despachanteimoveisbrasilia.com.br/sitemap.xml

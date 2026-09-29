@@ -1,0 +1,101 @@
+# www.despachanteimoveisbrasilia.com.br — Apache (KingHost). Host canônico: https://www.
+# Versionado em public/.htaccess. Não editar direto no servidor.
+# Tudo que depende de módulo fica em <IfModule>: se o módulo não existir,
+# a diretiva é ignorada em vez de derrubar o site com erro 500.
+
+AddDefaultCharset UTF-8
+DirectoryIndex index.html
+
+# 404 real (status 404), com a página do site
+ErrorDocument 404 /404.html
+
+<IfModule mod_mime.c>
+  AddType text/html .html
+  AddType application/javascript .js
+  AddType text/css .css
+  AddType application/json .json
+  AddType application/xml .xml
+  AddType image/svg+xml .svg
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+  AddCharset UTF-8 .html .css .js .json .xml .txt .svg
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1) URLs do sitemap antigo que nunca existiram → página equivalente (1 salto).
+  #    Ficam antes das regras de host para também resolver em 1 salto a partir de http/www.
+  RewriteRule ^escritura/?$ https://www.despachanteimoveisbrasilia.com.br/escritura-de-imovel-df/ [R=301,L]
+  RewriteRule ^registro/?$ https://www.despachanteimoveisbrasilia.com.br/registro-de-imovel-df/ [R=301,L]
+  RewriteRule ^certidoes/?$ https://www.despachanteimoveisbrasilia.com.br/certidoes-imobiliarias-df/ [R=301,L]
+  RewriteRule ^regularizacao/?$ https://www.despachanteimoveisbrasilia.com.br/regularizacao-de-imovel-df/ [R=301,L]
+  # Institucionais fundidas em /como-trabalhamos/ (26/09/2026). NE: não codificar o #.
+  RewriteRule ^o-que-nao-fazemos/?$ https://www.despachanteimoveisbrasilia.com.br/como-trabalhamos/#limites [R=301,L,NE]
+  RewriteRule ^rede-de-profissionais/?$ https://www.despachanteimoveisbrasilia.com.br/como-trabalhamos/#parceiros [R=301,L,NE]
+  # og:image antiga (pode estar em cache no WhatsApp/Facebook)
+  RewriteRule ^images/og-image\.jpg$ https://www.despachanteimoveisbrasilia.com.br/og/padrao.png [R=301,L]
+
+  # 2) /index.html (em qualquer pasta) → a pasta
+  RewriteCond %{THE_REQUEST} \s/+(.*/)?index\.html[\s?] [NC]
+  RewriteRule ^(.*/)?index\.html$ https://www.despachanteimoveisbrasilia.com.br/$1 [R=301,L]
+
+  # 3) Pasta sem barra final → com barra, já no host canônico (evita http→https→barra)
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^(.*[^/])$ https://www.despachanteimoveisbrasilia.com.br/$1/ [R=301,L]
+
+  # 4) HTTPS e com www (host canônico desde 28/09/2026): http ou host sem www → https://www (1 salto)
+  RewriteCond %{HTTPS} !=on [OR]
+  RewriteCond %{HTTP_HOST} !^www\. [NC]
+  RewriteRule ^(.*)$ https://www.despachanteimoveisbrasilia.com.br/$1 [R=301,L]
+</IfModule>
+
+# Compressão (a auditoria mediu 0%: 420 KB trafegando sem gzip)
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/xml application/xml application/javascript application/json image/svg+xml
+</IfModule>
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache
+<IfModule mod_headers.c>
+  # HTML: sempre revalida (conteúdo muda a cada publicação)
+  <FilesMatch "\.(html|xml|txt|json)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  # Imagens de compartilhamento e ícones: 30 dias
+  <FilesMatch "\.(png|jpg|jpeg|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Segurança básica
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+# Arquivos temporários do deploy (upload atômico): nunca servidos
+# Publicação via Git (KingHost): o diretório .git e arquivos de controle nunca podem ser servidos.
+<IfModule mod_alias.c>
+  RedirectMatch 404 /\.git(/|$)
+  RedirectMatch 404 /\.gitattributes$
+</IfModule>
+
+<FilesMatch "\.tmp-deploy$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
